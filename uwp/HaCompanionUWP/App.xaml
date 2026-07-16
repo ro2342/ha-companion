@@ -25,18 +25,18 @@
 
         <!-- Label pequeno em cinza (nome da entidade), valor grande em
              destaque (estado atual) e linha de contexto — as três partes
-             do card de entidade descritas em ha-companion-w10m.md. -->
-        <Style x:Key="EntityLabelStyle" TargetType="TextBlock">
-            <Setter Property="Style" Value="{StaticResource CaptionTextBlockStyle}" />
+             do card de entidade descritas em ha-companion-w10m.md.
+             BasedOn (não um Setter Property="Style") é o mecanismo correto
+             de herança de estilo — setar a própria propriedade "Style" via
+             Setter não é uma forma válida de estender outro estilo. -->
+        <Style x:Key="EntityLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
             <Setter Property="Opacity" Value="0.7" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
-        <Style x:Key="EntityValueStyle" TargetType="TextBlock">
-            <Setter Property="Style" Value="{StaticResource SubtitleTextBlockStyle}" />
+        <Style x:Key="EntityValueStyle" TargetType="TextBlock" BasedOn="{StaticResource SubtitleTextBlockStyle}">
             <Setter Property="Margin" Value="0,2,0,0" />
         </Style>
-        <Style x:Key="EntityContextStyle" TargetType="TextBlock">
-            <Setter Property="Style" Value="{StaticResource CaptionTextBlockStyle}" />
+        <Style x:Key="EntityContextStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
             <Setter Property="Opacity" Value="0.6" />
             <Setter Property="Margin" Value="0,4,0,0" />
         </Style>

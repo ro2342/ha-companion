@@ -13,9 +13,24 @@ namespace HaCompanionUWP
     // pra Favoritos.
     sealed partial class App : Application
     {
+        // Guardado em vez de deixar a exceção propagar: uma falha aqui
+        // (ex.: recurso mal formado em App.xaml) acontece dentro do próprio
+        // InitializeComponent, antes de qualquer handler poder ser
+        // registrado — sem isso o processo simplesmente encerra sozinho,
+        // mesmo antes da splash screen aparecer, sem deixar rastro nenhum
+        // (não há como puxar log do aparelho daqui).
+        private string _startupError;
+
         public App()
         {
-            this.InitializeComponent();
+            try
+            {
+                this.InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                _startupError = ex.Message;
+            }
             this.Suspending += OnSuspending;
             this.UnhandledException += App_UnhandledException;
         }
@@ -36,6 +51,23 @@ namespace HaCompanionUWP
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            if (_startupError != null)
+            {
+                // TextBlock puro, sem nenhum StaticResource — se o
+                // problema foi um recurso de App.xaml mal formado, resolver
+                // contra esses mesmos recursos aqui só trocaria um crash
+                // silencioso por um crash com uma tela em branco.
+                Window.Current.Content = new TextBlock
+                {
+                    Text = "Erro ao iniciar o app: " + _startupError,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(24),
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
+                Window.Current.Activate();
+                return;
+            }
+
             Frame rootFrame = Window.Current.Content as Frame;
 
             if (rootFrame == null)
