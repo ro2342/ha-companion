@@ -2,7 +2,7 @@ name: 02 - Build do appxbundle (Windows 10 Mobile)
 
 # Roda automaticamente a cada push que mexer na pasta uwp/, e também pode
 # ser disparado manualmente pela aba Actions. Gera o .appxbundle pronto pra
-# sideload no Lumia -- disponível como artefato do workflow ao final.
+# sideload no Lumia — disponível como artefato do workflow ao final.
 on:
   push:
     branches: [main]

@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace HaCompanionUWP.Views
 {
-    // Todas as sensor.* ao vivo -- só leitura, sem ação de toque.
+    // Todas as sensor.* ao vivo — só leitura, sem ação de toque.
     public sealed partial class SensorsPage : Page
     {
         public SensorsPage()

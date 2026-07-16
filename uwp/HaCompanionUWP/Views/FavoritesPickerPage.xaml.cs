@@ -10,7 +10,7 @@ namespace HaCompanionUWP.Views
     // Tela de seleção de favoritos: lista TODAS as entidades ao vivo
     // (agrupadas por domínio) com um CheckBox cada, marcado conforme a lista
     // já salva no CredentialStore. Existe porque não há como cravar
-    // entity_id no código sem saber os reais da conta do rod -- ver
+    // entity_id no código sem saber os reais da conta do rod — ver
     // ha-companion-w10m.md.
     public sealed partial class FavoritesPickerPage : Page
     {

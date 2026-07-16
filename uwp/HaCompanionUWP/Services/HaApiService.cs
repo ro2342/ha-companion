@@ -17,7 +17,7 @@ namespace HaCompanionUWP.Services
         }
     }
 
-    // Cliente HTTP fino pra API REST do Home Assistant -- só os endpoints que
+    // Cliente HTTP fino pra API REST do Home Assistant — só os endpoints que
     // a doc pede: /api/states e /api/services/<domain>/<service>. Sem
     // WebSocket, sem SDK externo, autenticação via header Bearer com o
     // Long-Lived Access Token guardado no CredentialStore.
@@ -78,7 +78,7 @@ namespace HaCompanionUWP.Services
             }
             catch (TaskCanceledException)
             {
-                throw new HaApiException("Sem resposta do Home Assistant -- confira se o celular está na mesma rede.");
+                throw new HaApiException("Sem resposta do Home Assistant — confira se o celular está na mesma rede.");
             }
             catch (Exception ex)
             {
@@ -87,7 +87,7 @@ namespace HaCompanionUWP.Services
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                throw new HaApiException("Token inválido ou expirado -- gere um novo em Ajustes.");
+                throw new HaApiException("Token inválido ou expirado — gere um novo em Ajustes.");
             }
             if (!response.IsSuccessStatusCode)
             {

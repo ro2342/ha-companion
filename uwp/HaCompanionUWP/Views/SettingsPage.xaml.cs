@@ -6,7 +6,7 @@ namespace HaCompanionUWP.Views
 {
     // URL base + Long-Lived Access Token (primeiro uso, ou reconfiguração).
     // "Testar conexão" e "Salvar" gravam os campos atuais no CredentialStore
-    // antes de agir -- não existe um caminho paralelo "não salvo" no
+    // antes de agir — não existe um caminho paralelo "não salvo" no
     // HaApiService, que sempre lê do CredentialStore.
     public sealed partial class SettingsPage : Page
     {
@@ -21,7 +21,7 @@ namespace HaCompanionUWP.Views
             BaseUrlBox.Text = CredentialStore.GetBaseUrl() ?? string.Empty;
             if (!string.IsNullOrEmpty(CredentialStore.GetToken()))
             {
-                TokenBox.PlaceholderText = "Token salvo -- deixe em branco para manter";
+                TokenBox.PlaceholderText = "Token salvo — deixe em branco para manter";
             }
         }
 

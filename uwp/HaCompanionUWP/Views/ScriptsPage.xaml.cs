@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace HaCompanionUWP.Views
 {
-    // Todas as script.* ao vivo -- card dispara script.turn_on.
+    // Todas as script.* ao vivo — card dispara script.turn_on.
     public sealed partial class ScriptsPage : Page
     {
         public ScriptsPage()

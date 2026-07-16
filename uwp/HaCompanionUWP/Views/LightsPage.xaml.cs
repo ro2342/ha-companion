@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace HaCompanionUWP.Views
 {
-    // Todas as light.* e switch.* ao vivo -- domínios que a doc trata do
+    // Todas as light.* e switch.* ao vivo — domínios que a doc trata do
     // mesmo jeito visualmente (card tocável; switch só não mostra brilho).
     public sealed partial class LightsPage : Page
     {

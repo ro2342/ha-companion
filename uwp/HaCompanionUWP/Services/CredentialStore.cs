@@ -7,7 +7,7 @@ using Windows.Storage;
 namespace HaCompanionUWP.Services
 {
     // Guarda a URL base e a lista de favoritos em ApplicationData.LocalSettings
-    // (não sensível) e o Long-Lived Access Token no PasswordVault (sensível) --
+    // (não sensível) e o Long-Lived Access Token no PasswordVault (sensível) —
     // nunca em texto puro em disco fora do vault.
     public static class CredentialStore
     {
@@ -38,7 +38,7 @@ namespace HaCompanionUWP.Services
             catch (Exception)
             {
                 // Retrieve lança quando não existe nenhuma credencial salva ainda
-                // (primeiro uso) -- tratado como "sem token", não como erro.
+                // (primeiro uso) — tratado como "sem token", não como erro.
                 return null;
             }
         }
@@ -65,7 +65,7 @@ namespace HaCompanionUWP.Services
             }
             catch (Exception)
             {
-                // FindAllByResource lança quando não há nada salvo -- nada a limpar.
+                // FindAllByResource lança quando não há nada salvo — nada a limpar.
             }
         }
 

@@ -10,7 +10,7 @@ using Windows.UI.Xaml.Controls;
 namespace HaCompanionUWP.Views
 {
     // Tela inicial: cards das entidades marcadas como favoritas em Ajustes >
-    // Escolher favoritos. Sem entity_id cravado no código -- a lista vem do
+    // Escolher favoritos. Sem entity_id cravado no código — a lista vem do
     // CredentialStore, escolhida na FavoritesPickerPage a partir do que a
     // conta do HA realmente tem.
     public sealed partial class FavoritesPage : Page

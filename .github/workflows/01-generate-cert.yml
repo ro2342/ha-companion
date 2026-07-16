@@ -1,6 +1,6 @@
 name: 01 - Gerar certificado de assinatura (rodar uma vez)
 
-# Esse workflow NÃO roda sozinho a cada push -- só quando você aciona
+# Esse workflow NÃO roda sozinho a cada push — só quando você aciona
 # manualmente pela aba "Actions" do GitHub (botão "Run workflow"). É um
 # passo único de configuração: gera um certificado autoassinado, salva a
 # chave privada (.pfx) de volta no repositório (usada por todo build futuro)

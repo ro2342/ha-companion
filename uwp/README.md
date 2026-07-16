@@ -2,7 +2,7 @@
 
 App UWP nativo em C#/XAML: painel de controle do Home Assistant pro Lumia
 830, via API REST (`/api/states`, `/api/services/<domain>/<service>`), sem
-WebView/Lovelace -- ver [`../ha-companion-w10m.md`](../ha-companion-w10m.md)
+WebView/Lovelace — ver [`../ha-companion-w10m.md`](../ha-companion-w10m.md)
 pra especificação completa (motivação, layout, mapeamento de domínio→card).
 
 Estrutura e convenções de build seguem
@@ -12,7 +12,7 @@ Lumia 830 documentados nos comentários do código (glifos crus em vez de
 `SymbolIcon`, sem `StackPanel.Spacing`, build em Debug em vez de Release).
 
 **Aviso importante:** eu não tenho como compilar nem testar isso antes de
-você rodar -- não existe toolchain UWP fora do Windows, e meu ambiente aqui
+você rodar — não existe toolchain UWP fora do Windows, e meu ambiente aqui
 é Linux. Escrevo tudo com o máximo de cuidado (validação de XML, conferência
 cruzada de `x:Name` entre XAML e code-behind), mas a validação real acontece
 no primeiro build do GitHub Actions depois do push. Se algo quebrar, me cola
@@ -27,7 +27,7 @@ GitHub Actions, mas a chave só existe depois que você rodar isso uma vez:
 2. Clique no workflow **"01 - Gerar certificado de assinatura (rodar uma vez)"**
 3. Clique em **"Run workflow"** → **"Run workflow"** de novo pra confirmar
 4. Espere terminar (~1-2 min). Isso salva a chave privada no repositório
-   automaticamente -- os próximos builds já vão conseguir assinar sozinhos
+   automaticamente — os próximos builds já vão conseguir assinar sozinhos
 
 Não precisa repetir esse passo depois, a menos que queira trocar o certificado.
 
@@ -49,7 +49,7 @@ workflow **"02 - Build do appxbundle"** sozinho.
    celular e toque para instalar
 
 Se der erro de "editor não confiável", o artefato do workflow 01 também
-inclui um `hacompanion-public-cert.cer` -- transfira e instale esse primeiro
+inclui um `hacompanion-public-cert.cer` — transfira e instale esse primeiro
 (ele vai pedir pra confirmar como certificado confiável), depois tente o
 `.appxbundle` de novo.
 
@@ -58,11 +58,11 @@ inclui um `hacompanion-public-cert.cer` -- transfira e instale esse primeiro
 1. Abrir o app pela primeira vez leva direto pra **Ajustes** (sem URL/token
    salvos ainda)
 2. Preencher a **URL base** do Home Assistant (ex: `http://192.168.x.x:8123`
-   -- precisa ser um endereço alcançável pelo Lumia na mesma rede Wi-Fi) e o
+   — precisa ser um endereço alcançável pelo Lumia na mesma rede Wi-Fi) e o
    **Long-Lived Access Token** (gerado no seu perfil do HA: Perfil > Segurança
    > Long-Lived Access Tokens > Criar Token)
 3. **Testar conexão** pra confirmar antes de salvar
-4. **Salvar** -- o app cai na tela de Favoritos (vazia no primeiro uso)
+4. **Salvar** — o app cai na tela de Favoritos (vazia no primeiro uso)
 5. Em Ajustes > **Escolher favoritos**, marcar quais luzes/sensores/scripts
    aparecem na tela inicial
 
@@ -70,7 +70,7 @@ inclui um `hacompanion-public-cert.cer` -- transfira e instale esse primeiro
 
 Mesmo raciocínio do artistsway: o tipo de projeto UWP "só JavaScript"
 (`.jsproj`) foi descontinuado, e o `TargetPlatformMinVersion=10.0.14393.0`
-(Anniversary Update) é a base real do Lumia 830 -- por isso nada aqui usa
+(Anniversary Update) é a base real do Lumia 830 — por isso nada aqui usa
 `StackPanel.Spacing`/`Grid.ColumnSpacing`/`RowSpacing` (só existem a partir
 do Fall Creators Update, 10.0.16299); espaçamento é sempre via `Margin`.
 

@@ -42,7 +42,7 @@ namespace HaCompanionUWP.Models
 
         public bool IsOn => string.Equals(State, "on", StringComparison.OrdinalIgnoreCase);
 
-        // Brilho do HA vai de 0 a 255 -- convertido pra percentual (0-100),
+        // Brilho do HA vai de 0 a 255 — convertido pra percentual (0-100),
         // que é o que faz sentido mostrar na linha de contexto do card.
         public int? BrightnessPercent
         {
@@ -60,7 +60,7 @@ namespace HaCompanionUWP.Models
             }
         }
 
-        // Valor grande em destaque no card -- "ligada"/"desligada" pra
+        // Valor grande em destaque no card — "ligada"/"desligada" pra
         // light/switch, "pronto" pra script (o estado bruto do HA aqui é só
         // "on"/"off" de disponibilidade, não é útil mostrar cru), e o valor
         // com unidade pra qualquer outro domínio (sensor etc.).
@@ -81,7 +81,7 @@ namespace HaCompanionUWP.Models
             }
         }
 
-        // Linha de contexto pequena embaixo do valor -- brilho ou dica de
+        // Linha de contexto pequena embaixo do valor — brilho ou dica de
         // toque pra light/switch, hora da última atualização pra sensor,
         // dica de toque pra script.
         public string ContextLine

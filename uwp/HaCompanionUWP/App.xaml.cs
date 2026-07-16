@@ -6,7 +6,7 @@ using Windows.UI.Xaml.Navigation;
 namespace HaCompanionUWP
 {
     // Ponto de entrada do app. Sem conteúdo pra carregar de antemão (ao
-    // contrário do artistsway) -- o shell (MainPage) decide sozinho, no
+    // contrário do artistsway) — o shell (MainPage) decide sozinho, no
     // Loaded, se manda pra Ajustes (primeiro uso, sem URL/token salvos) ou
     // pra Favoritos.
     sealed partial class App : Application

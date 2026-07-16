@@ -13,7 +13,7 @@ namespace HaCompanionUWP
 {
     // Shell de navegação nativo: um Frame pro conteúdo + um cabeçalho fixo no
     // topo (hambúrguer + título da seção atual) que abre um SplitView
-    // deslizando por cima do conteúdo -- mesmo padrão do
+    // deslizando por cima do conteúdo — mesmo padrão do
     // artistsway/uwp/ArtistWayUWP/MainPage.xaml.cs, com os itens de nav
     // trocados pros domínios do Home Assistant.
     public sealed partial class MainPage : Page
@@ -54,7 +54,7 @@ namespace HaCompanionUWP
         }
 
         // Quadrado sólido na cor de destaque, igual ao botão de menu dos
-        // apps nativos da Microsoft -- precisa ser aplicado em código porque
+        // apps nativos da Microsoft — precisa ser aplicado em código porque
         // a cor de destaque do sistema não muda com o tema.
         private void StyleMenuButton()
         {
@@ -161,7 +161,7 @@ namespace HaCompanionUWP
         }
 
         // IconElement (não SymbolIcon) porque alguns ícones de nav são
-        // FontIcon (glifo cru, ver comentário no MainPage.xaml) -- os dois
+        // FontIcon (glifo cru, ver comentário no MainPage.xaml) — os dois
         // herdam de IconElement, que já tem Foreground usado aqui.
         private static void SetTabForeground(TextBlock label, IconElement icon, bool active, Brush accent)
         {
