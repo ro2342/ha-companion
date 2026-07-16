@@ -55,11 +55,12 @@ jobs:
         run: |
           msbuild uwp\HaCompanionUWP\HaCompanionUWP.csproj ^
             /restore ^
-            /p:Configuration=Debug ^
+            /p:Configuration=Release ^
             /p:Platform=ARM ^
             /p:AppxBundlePlatforms=ARM ^
             /p:AppxBundle=Always ^
             /p:UapAppxPackageBuildMode=SideloadOnly ^
+            /p:UseDotNetNativeToolchain=true ^
             /p:AppxPackageSigningEnabled=true ^
             /p:PackageCertificateKeyFile=HaCompanionUWP_TemporaryKey.pfx ^
             /p:PackageCertificatePassword=HaCompanion2026! ^

@@ -8,7 +8,7 @@
   <Identity
     Name="RodCarvalho.HaCompanion"
     Publisher="CN=RodCarvalho-HaCompanion-SelfSigned"
-    Version="1.0.0.3" />
+    Version="1.0.0.4" />
 
   <mp:PhoneIdentity PhoneProductId="7c9c5b6a-2e1d-4a8f-9c3b-6d4e1f7a2b90" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 

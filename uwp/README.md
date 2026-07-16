@@ -9,7 +9,10 @@ Estrutura e convenções de build seguem
 [`theartistsway/uwp/ArtistWayUWP`](https://github.com/ro2342/theartistsway)
 (mesmo aparelho, mesma toolchain), inclusive os workarounds específicos do
 Lumia 830 documentados nos comentários do código (glifos crus em vez de
-`SymbolIcon`, sem `StackPanel.Spacing`, build em Debug em vez de Release).
+`SymbolIcon`, sem `StackPanel.Spacing`, build em Release com
+`UseDotNetNativeToolchain=true` — a mesma combinação que o artistsway
+realmente usa hoje, confirmada comparando o artefato de build de verdade
+dos dois projetos, não só a documentação histórica dele).
 
 **Aviso importante:** eu não tenho como compilar nem testar isso antes de
 você rodar — não existe toolchain UWP fora do Windows, e meu ambiente aqui
