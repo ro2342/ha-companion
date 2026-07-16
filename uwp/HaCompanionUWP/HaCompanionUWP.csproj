@@ -65,6 +65,7 @@
     <Compile Include="Services\HaApiService.cs" />
     <Compile Include="Services\EntityCardTemplateSelector.cs" />
     <Compile Include="Services\ThemeHelper.cs" />
+    <Compile Include="Services\UpdateCheckService.cs" />
 
     <Compile Include="Views\FavoritesPage.xaml.cs">
       <DependentUpon>FavoritesPage.xaml</DependentUpon>

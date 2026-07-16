@@ -2,7 +2,9 @@ name: 02 - Build do appxbundle (Windows 10 Mobile)
 
 # Roda automaticamente a cada push que mexer na pasta uwp/, e também pode
 # ser disparado manualmente pela aba Actions. Gera o .appxbundle pronto pra
-# sideload no Lumia — disponível como artefato do workflow ao final.
+# sideload no Lumia — disponível como artefato do workflow, e também
+# publicado em app/ (link estável via GitHub Pages), mesmo esquema do
+# theartistsway/.github/workflows/02-build-appx.yml.
 on:
   push:
     branches: [main]
@@ -13,11 +15,20 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: windows-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
@@ -61,3 +72,43 @@ jobs:
           name: hacompanion-appxbundle
           path: AppPackages/**
           if-no-files-found: error
+
+      - name: Publicar o appxbundle e o version.json em app/ (link estável pro GitHub Pages)
+        shell: pwsh
+        run: |
+          $bundle = Get-ChildItem -Path AppPackages -Recurse -Filter *.appxbundle | Select-Object -First 1
+          if (-not $bundle) {
+            Write-Error "Nenhum .appxbundle encontrado em AppPackages."
+            exit 1
+          }
+          New-Item -ItemType Directory -Force -Path app | Out-Null
+          Copy-Item $bundle.FullName -Destination "app/app.appxbundle" -Force
+
+          [xml]$manifest = Get-Content "uwp/HaCompanionUWP/Package.appxmanifest"
+          $version = $manifest.Package.Identity.Version
+          $builtAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+          $versionJson = @{ version = $version; builtAt = $builtAt } | ConvertTo-Json -Compress
+          Set-Content -Path "app/version.json" -Value $versionJson -NoNewline
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/app.appxbundle app/version.json
+          git diff --cached --quiet -- app/app.appxbundle app/version.json
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "app.appxbundle e version.json já estão atualizados, nada para commitar."
+          } else {
+            git commit -m "chore: atualiza app/app.appxbundle e app/version.json (automático)"
+            git push
+          }
+
+      - name: Configurar o GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empacotar app/ como artefato do Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: app
+
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
