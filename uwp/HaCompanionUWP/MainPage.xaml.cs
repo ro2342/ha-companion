@@ -202,12 +202,29 @@ namespace HaCompanionUWP
 
         // — erro fatal —
 
+        // Se o InitializeComponent desta própria página falhar bem cedo
+        // (ex.: um recurso mal formado em Page.Resources, que vem ANTES do
+        // Grid/ErrorPanel no documento XAML), ErrorText/ErrorPanel podem
+        // nunca ter sido conectados — mostrar o erro neles seria um no-op
+        // silencioso (tela em branco, sem nenhum rastro do que aconteceu).
+        // Nesse caso, cai pro Window.Current.Content direto, com um
+        // TextBlock puro sem nenhum StaticResource desta página.
         private void ShowFatalError(string message)
         {
             if (ErrorText != null && ErrorPanel != null)
             {
                 ErrorText.Text = message;
                 ErrorPanel.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                Window.Current.Content = new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(24),
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
             }
         }
     }
