@@ -1,0 +1,8 @@
+# Build UWP (só existem se algum dia abrir no Visual Studio/Windows --
+# aqui não tem toolchain local pra gerar isso)
+uwp/HaCompanionUWP/bin/
+uwp/HaCompanionUWP/obj/
+uwp/HaCompanionUWP/AppPackages/
+uwp/HaCompanionUWP/BundleArtifacts/
+*.user
+.vs/

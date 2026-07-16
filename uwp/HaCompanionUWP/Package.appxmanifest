@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  IgnorableNamespaces="uap mp">
+
+  <Identity
+    Name="RodCarvalho.HaCompanion"
+    Publisher="CN=RodCarvalho-HaCompanion-SelfSigned"
+    Version="1.0.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="7c9c5b6a-2e1d-4a8f-9c3b-6d4e1f7a2b90" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+
+  <Properties>
+    <DisplayName>HA Companion</DisplayName>
+    <PublisherDisplayName>Rod Carvalho</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <!--
+      MinVersion/MaxVersionTested aqui são placeholders: o MSBuild reescreve
+      esses dois valores automaticamente a partir de TargetPlatformMinVersion
+      e TargetPlatformVersion do .csproj no momento do build (mesmo esquema
+      do artistsway/uwp/ArtistWayUWP/Package.appxmanifest).
+    -->
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.14393.0" MaxVersionTested="10.0.17763.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="pt-BR" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="HaCompanionUWP.App">
+      <uap:VisualElements
+        DisplayName="HA Companion"
+        Description="Painel de controle rápido do Home Assistant — luzes, sensores e scripts direto do bolso."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square71x71Logo="Assets\Square71x71Logo.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo" />
+            <uap:ShowOn Tile="wide310x150Logo" />
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="transparent" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Só isso — API REST do HA na rede local (Wi-Fi), sem calendário nem
+         outro recurso do sistema. -->
+    <Capability Name="internetClient" />
+  </Capabilities>
+
+</Package>

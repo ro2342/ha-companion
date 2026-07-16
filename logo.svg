@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="100%" height="100%">
+  <!--
+    Ícone HA Companion
+    Estilo: Microsoft Design Language 2 (MDL2 / W10M Metro)
+    Target: Windows 10 Mobile (Lumia 830 Live Tile)
+    Cor: Branco puro (#FFFFFF) com fundo 100% transparente
+  -->
+  <g fill="#FFFFFF">
+    <!-- Telhado -->
+    <path d="M 48 8 L 12 46 L 84 46 Z" />
+    <!-- Corpo da casa, com recorte da porta (evenodd) -->
+    <path fill-rule="evenodd" d="
+      M 22 44 L 74 44 L 74 88 L 22 88 Z
+      M 42 66 L 54 66 L 54 88 L 42 88 Z" />
+  </g>
+</svg>

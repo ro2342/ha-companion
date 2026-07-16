@@ -1,0 +1,40 @@
+<Page
+    x:Class="HaCompanionUWP.Views.FavoritesPickerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HaCompanionUWP.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Escolher favoritos"
+                   Style="{StaticResource TitleTextBlockStyle}"
+                   Margin="16,16,16,8" />
+
+        <ScrollViewer Grid.Row="1" Padding="16,0,16,24">
+            <StackPanel>
+                <Border x:Name="ErrorCard" Visibility="Collapsed" Style="{StaticResource NudgeBorderStyle}">
+                    <TextBlock x:Name="ErrorText" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                </Border>
+
+                <!-- As seções por domínio (Luzes, Interruptores, Sensores,
+                     Scripts) e os CheckBox de cada entidade são montados em
+                     código — a quantidade e os nomes reais só se sabem
+                     depois do GET /api/states. -->
+                <StackPanel x:Name="GroupsPanel" />
+
+                <Button x:Name="SaveButton" Content="Salvar" Click="Save_Click" HorizontalAlignment="Stretch" Margin="0,16,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <ProgressRing Grid.RowSpan="2" x:Name="LoadingRing" IsActive="False" Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Grid>
+</Page>

@@ -1,0 +1,94 @@
+<Page
+    x:Class="HaCompanionUWP.Views.FavoritesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HaCompanionUWP.Views"
+    xmlns:services="using:HaCompanionUWP.Services"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <!--
+      Sem StackPanel.Spacing/Grid.ColumnSpacing/RowSpacing (só existem a
+      partir do Fall Creators Update, 10.0.16299) — este projeto declara
+      TargetPlatformMinVersion=10.0.14393.0 (Anniversary Update, a base real
+      do Lumia 830). Espaçamento sempre via Margin.
+    -->
+    <Page.Resources>
+        <DataTemplate x:Key="LightCardTemplate">
+            <Button Tag="{Binding EntityId}"
+                    Click="EntityCard_Click"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0">
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding FriendlyName}" Style="{StaticResource EntityLabelStyle}" />
+                        <TextBlock Text="{Binding DisplayValue}" Style="{StaticResource EntityValueStyle}" />
+                        <TextBlock Text="{Binding ContextLine}" Style="{StaticResource EntityContextStyle}" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SensorCardTemplate">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock Text="{Binding FriendlyName}" Style="{StaticResource EntityLabelStyle}" />
+                    <TextBlock Text="{Binding DisplayValue}" Style="{StaticResource EntityValueStyle}" />
+                    <TextBlock Text="{Binding ContextLine}" Style="{StaticResource EntityContextStyle}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ScriptCardTemplate">
+            <Button Tag="{Binding EntityId}"
+                    Click="EntityCard_Click"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0">
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding FriendlyName}" Style="{StaticResource EntityLabelStyle}" />
+                        <TextBlock Text="{Binding DisplayValue}" Style="{StaticResource EntityValueStyle}" />
+                        <TextBlock Text="{Binding ContextLine}" Style="{StaticResource EntityContextStyle}" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </DataTemplate>
+
+        <services:EntityCardTemplateSelector x:Key="CardSelector"
+                                              LightCardTemplate="{StaticResource LightCardTemplate}"
+                                              SensorCardTemplate="{StaticResource SensorCardTemplate}"
+                                              ScriptCardTemplate="{StaticResource ScriptCardTemplate}" />
+    </Page.Resources>
+
+    <Grid>
+        <ScrollViewer Padding="16,16,16,24">
+            <StackPanel>
+                <Border x:Name="ErrorCard" Visibility="Collapsed" Style="{StaticResource NudgeBorderStyle}">
+                    <TextBlock x:Name="ErrorText" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                </Border>
+
+                <Border x:Name="EmptyStateCard" Visibility="Collapsed" Style="{StaticResource NudgeBorderStyle}">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Nenhum favorito ainda" Style="{StaticResource BodyTextBlockStyle}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Escolha quais luzes, sensores e scripts aparecem aqui." Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,0" />
+                        <Button Content="Escolher favoritos" Click="ChooseFavorites_Click" HorizontalAlignment="Stretch" Margin="0,12,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl x:Name="EntitiesList" ItemTemplateSelector="{StaticResource CardSelector}" />
+
+                <Button x:Name="RefreshButton" Content="Atualizar" Click="Refresh_Click" HorizontalAlignment="Stretch" Margin="0,4,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <ProgressRing x:Name="LoadingRing" IsActive="False" Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Grid>
+</Page>
