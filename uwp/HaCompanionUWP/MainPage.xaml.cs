@@ -107,6 +107,9 @@ namespace HaCompanionUWP
             Type pageType;
             switch (tag)
             {
+                case "Dashboard":
+                    pageType = typeof(DashboardPage);
+                    break;
                 case "Favorites":
                     pageType = typeof(FavoritesPage);
                     break;
@@ -141,19 +144,22 @@ namespace HaCompanionUWP
         {
             SolidColorBrush accent = ThemeHelper.AccentBrush();
 
+            bool isDashboard = pageType == typeof(DashboardPage);
             bool isFavorites = pageType == typeof(FavoritesPage);
             bool isLights = pageType == typeof(LightsPage);
             bool isSensors = pageType == typeof(SensorsPage);
             bool isScripts = pageType == typeof(ScriptsPage);
             bool isSettings = pageType == typeof(SettingsPage);
 
+            SetTabForeground(NavDashboardLabel, NavDashboardIcon, isDashboard, accent);
             SetTabForeground(NavFavoritesLabel, NavFavoritesIcon, isFavorites, accent);
             SetTabForeground(NavLightsLabel, NavLightsIcon, isLights, accent);
             SetTabForeground(NavSensorsLabel, NavSensorsIcon, isSensors, accent);
             SetTabForeground(NavScriptsLabel, NavScriptsIcon, isScripts, accent);
             SetTabForeground(NavSettingsLabel, NavSettingsIcon, isSettings, accent);
 
-            if (isFavorites) HeaderTitleText.Text = "Favoritos";
+            if (isDashboard) HeaderTitleText.Text = "Dashboard";
+            else if (isFavorites) HeaderTitleText.Text = "Favoritos";
             else if (isLights) HeaderTitleText.Text = "Luzes";
             else if (isSensors) HeaderTitleText.Text = "Sensores";
             else if (isScripts) HeaderTitleText.Text = "Scripts";

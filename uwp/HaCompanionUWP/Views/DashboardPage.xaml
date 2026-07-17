@@ -1,0 +1,73 @@
+<Page
+    x:Class="HaCompanionUWP.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HaCompanionUWP.Views"
+    xmlns:services="using:HaCompanionUWP.Services"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <!--
+      Renderiza o dashboard Lovelace de verdade (configurado em Ajustes),
+      um tile nativo por card — não tenta reproduzir a aparência de cards
+      de terceiros (mushroom-*, hue-like-light-card etc.), só a entidade
+      que cada um controla, no mesmo estilo Windows Mobile do resto do app.
+      Ver ha-companion-w10m.md e o plano da sessão pra o que fica de fora.
+    -->
+    <Page.Resources>
+        <DataTemplate x:Key="HeadingTemplate">
+            <TextBlock Text="{Binding HeadingText}"
+                       Style="{StaticResource SubtitleTextBlockStyle}"
+                       Margin="0,16,0,4" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="EntityTemplate">
+            <Button Tag="{Binding Entity.EntityId}"
+                    Click="EntityCard_Click"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0">
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding Entity.FriendlyName}" Style="{StaticResource EntityLabelStyle}" />
+                        <TextBlock Text="{Binding Entity.DisplayValue}" Style="{StaticResource EntityValueStyle}" />
+                        <TextBlock Text="{Binding Entity.ContextLine}" Style="{StaticResource EntityContextStyle}" />
+                    </StackPanel>
+                </Border>
+            </Button>
+        </DataTemplate>
+
+        <services:DashboardTileTemplateSelector x:Key="TileSelector"
+                                                 HeadingTemplate="{StaticResource HeadingTemplate}"
+                                                 EntityTemplate="{StaticResource EntityTemplate}" />
+    </Page.Resources>
+
+    <Grid>
+        <ScrollViewer Padding="16,16,16,24">
+            <StackPanel>
+                <TextBlock x:Name="DashboardTitleText" Style="{StaticResource TitleTextBlockStyle}" TextTrimming="CharacterEllipsis" />
+
+                <Border x:Name="ErrorCard" Visibility="Collapsed" Style="{StaticResource NudgeBorderStyle}" Margin="0,12,0,0">
+                    <TextBlock x:Name="ErrorText" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                </Border>
+
+                <TextBlock x:Name="EmptyText"
+                           Text="Nada pra mostrar — confira o url_path do dashboard em Ajustes."
+                           Style="{StaticResource BodyTextBlockStyle}"
+                           Opacity="0.7"
+                           Visibility="Collapsed"
+                           Margin="0,12,0,0" />
+
+                <ItemsControl x:Name="TilesList" ItemTemplateSelector="{StaticResource TileSelector}" Margin="0,8,0,0" />
+
+                <Button x:Name="RefreshButton" Content="Atualizar" Click="Refresh_Click" HorizontalAlignment="Stretch" Margin="0,8,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <ProgressRing x:Name="LoadingRing" IsActive="False" Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Grid>
+</Page>

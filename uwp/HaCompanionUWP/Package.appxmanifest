@@ -8,7 +8,7 @@
   <Identity
     Name="RodCarvalho.HaCompanion"
     Publisher="CN=RodCarvalho-HaCompanion-SelfSigned"
-    Version="1.0.0.4" />
+    Version="1.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="7c9c5b6a-2e1d-4a8f-9c3b-6d4e1f7a2b90" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -54,9 +54,13 @@
   </Applications>
 
   <Capabilities>
-    <!-- Só isso — API REST do HA na rede local (Wi-Fi), sem calendário nem
-         outro recurso do sistema. -->
+    <!-- internetClient sozinho não é suficiente pra falar com um host de
+         IP privado (o HA do usuário fica na rede local, tipo 192.168.x.x)
+         — o Windows classifica isso como zona "Private Network", não
+         "Internet", e isola o app sem privateNetworkClientServer. Nada de
+         calendário nem outro recurso do sistema. -->
     <Capability Name="internetClient" />
+    <Capability Name="privateNetworkClientServer" />
   </Capabilities>
 
 </Package>

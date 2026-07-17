@@ -46,12 +46,19 @@ namespace HaCompanionUWP.Services
             return result;
         }
 
-        public static async Task CallServiceAsync(string domain, string service, string entityId)
+        public static async Task CallServiceAsync(string domain, string service, string entityId, JsonObject extraFields = null)
         {
             var payload = new JsonObject
             {
                 ["entity_id"] = JsonValue.CreateStringValue(entityId),
             };
+            if (extraFields != null)
+            {
+                foreach (KeyValuePair<string, IJsonValue> field in extraFields)
+                {
+                    payload[field.Key] = field.Value;
+                }
+            }
             await SendAsync(HttpMethod.Post, $"/api/services/{domain}/{service}", payload.Stringify());
         }
 

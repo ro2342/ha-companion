@@ -14,6 +14,12 @@ namespace HaCompanionUWP.Models
         public JsonObject Attributes { get; set; }
         public DateTimeOffset? LastChanged { get; set; }
 
+        // Nome customizado vindo de um card do dashboard (ex.: "Kitchen In"
+        // pra switch.kitchen_lights_switch_2) — sobrepõe o friendly_name
+        // do próprio HA só pra essa exibição, sem mutar o objeto original
+        // (ver WithDisplayName, usado pelo DashboardParser).
+        public string DisplayNameOverride { get; set; }
+
         public string Domain
         {
             get
@@ -31,6 +37,10 @@ namespace HaCompanionUWP.Models
         {
             get
             {
+                if (!string.IsNullOrEmpty(DisplayNameOverride))
+                {
+                    return DisplayNameOverride;
+                }
                 string name = GetStringAttribute("friendly_name");
                 return string.IsNullOrEmpty(name) ? EntityId : name;
             }
@@ -61,9 +71,10 @@ namespace HaCompanionUWP.Models
         }
 
         // Valor grande em destaque no card — "ligada"/"desligada" pra
-        // light/switch, "pronto" pra script (o estado bruto do HA aqui é só
-        // "on"/"off" de disponibilidade, não é útil mostrar cru), e o valor
-        // com unidade pra qualquer outro domínio (sensor etc.).
+        // light/switch/fan/humidifier/input_boolean, e um valor específico
+        // por domínio pros demais (media_player, weather, vacuum, cover,
+        // update, todo) — o resto (sensor, number etc.) cai no valor bruto
+        // + unidade.
         public string DisplayValue
         {
             get
@@ -72,18 +83,32 @@ namespace HaCompanionUWP.Models
                 {
                     case "light":
                     case "switch":
+                    case "fan":
+                    case "humidifier":
+                    case "input_boolean":
                         return IsOn ? "Ligada" : "Desligada";
                     case "script":
                         return "Pronto";
+                    case "cover":
+                        return string.Equals(State, "open", StringComparison.OrdinalIgnoreCase) ? "Aberta" : "Fechada";
+                    case "media_player":
+                        return MediaPlayerDisplay();
+                    case "weather":
+                        return WeatherDisplay();
+                    case "vacuum":
+                        return VacuumDisplay();
+                    case "update":
+                        return IsOn ? "Atualização disponível" : "Atualizado";
+                    case "todo":
+                        return $"{State} pendente(s)";
                     default:
                         return string.IsNullOrEmpty(UnitOfMeasurement) ? State : $"{State} {UnitOfMeasurement}";
                 }
             }
         }
 
-        // Linha de contexto pequena embaixo do valor — brilho ou dica de
-        // toque pra light/switch, hora da última atualização pra sensor,
-        // dica de toque pra script.
+        // Linha de contexto pequena embaixo do valor — dica de toque por
+        // domínio.
         public string ContextLine
         {
             get
@@ -95,13 +120,63 @@ namespace HaCompanionUWP.Models
                         return BrightnessPercent.HasValue
                             ? $"Brilho {BrightnessPercent.Value}% · toque para alternar"
                             : "Toque para ligar/desligar";
+                    case "fan":
+                    case "humidifier":
+                    case "input_boolean":
+                    case "cover":
+                        return "Toque para alternar";
                     case "script":
                         return "Toque para rodar";
+                    case "media_player":
+                        return "Toque para tocar/pausar";
+                    case "vacuum":
+                        return "Toque para iniciar/pausar";
+                    case "update":
+                        return IsOn ? "Toque para instalar" : "Sem atualização pendente";
+                    case "todo":
+                        return "Toque para ver a lista";
                     default:
                         return LastChanged.HasValue
                             ? $"Sensor · atualizado às {LastChanged.Value.ToLocalTime():HH:mm}"
                             : "Sensor";
                 }
+            }
+        }
+
+        private string MediaPlayerDisplay()
+        {
+            string title = GetStringAttribute("media_title");
+            if (!string.IsNullOrEmpty(title))
+            {
+                return title;
+            }
+            switch (State)
+            {
+                case "playing": return "Tocando";
+                case "paused": return "Pausado";
+                case "idle": return "Parado";
+                case "off": return "Desligado";
+                default: return State;
+            }
+        }
+
+        private string WeatherDisplay()
+        {
+            string temperature = GetStringAttribute("temperature");
+            return string.IsNullOrEmpty(temperature) ? State : $"{State} · {temperature}°";
+        }
+
+        private string VacuumDisplay()
+        {
+            switch (State)
+            {
+                case "cleaning": return "Limpando";
+                case "docked": return "Na base";
+                case "returning": return "Voltando à base";
+                case "paused": return "Pausado";
+                case "idle": return "Parado";
+                case "error": return "Erro";
+                default: return State;
             }
         }
 
@@ -121,6 +196,22 @@ namespace HaCompanionUWP.Models
                 default:
                     return null;
             }
+        }
+
+        // Cópia rasa com o nome de exibição sobrescrito — usado quando um
+        // card do dashboard renomeia a entidade (ex.: name: "Kitchen In"),
+        // sem afetar outras referências à mesma entidade (ex.: a mesma
+        // switch também estar em Favoritos com o nome padrão).
+        public HaEntityState WithDisplayName(string displayName)
+        {
+            return new HaEntityState
+            {
+                EntityId = EntityId,
+                State = State,
+                Attributes = Attributes,
+                LastChanged = LastChanged,
+                DisplayNameOverride = displayName,
+            };
         }
 
         public static HaEntityState FromJson(JsonObject json)

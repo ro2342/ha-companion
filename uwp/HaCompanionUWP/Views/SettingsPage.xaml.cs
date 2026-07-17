@@ -28,6 +28,7 @@ namespace HaCompanionUWP.Views
             {
                 TokenBox.PlaceholderText = "Token salvo — deixe em branco para manter";
             }
+            DashboardUrlPathBox.Text = CredentialStore.GetDashboardUrlPath() ?? string.Empty;
             CurrentVersionText.Text = $"Versão instalada: {UpdateCheckService.CurrentVersion}";
         }
 
@@ -40,6 +41,7 @@ namespace HaCompanionUWP.Views
             {
                 CredentialStore.SaveToken(TokenBox.Password);
             }
+            CredentialStore.SaveDashboardUrlPath(DashboardUrlPathBox.Text);
         }
 
         private async void Test_Click(object sender, RoutedEventArgs e)
@@ -171,6 +173,7 @@ namespace HaCompanionUWP.Views
                 BaseUrlBox.Text = string.Empty;
                 TokenBox.Password = string.Empty;
                 TokenBox.PlaceholderText = "Gerado no seu perfil do Home Assistant";
+                DashboardUrlPathBox.Text = string.Empty;
                 StatusText.Visibility = Visibility.Collapsed;
             }
         }
