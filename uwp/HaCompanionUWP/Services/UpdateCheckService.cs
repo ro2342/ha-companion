@@ -37,7 +37,7 @@ namespace HaCompanionUWP.Services
         private const string DownloadFolderTokenKey = "UpdateDownloadFolder";
         private const string DownloadFileName = "HaCompanionUWP.appxbundle";
 
-        private static readonly HttpClient Client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+        private static readonly HttpClient Client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
         public static string CurrentVersion
         {
@@ -48,19 +48,41 @@ namespace HaCompanionUWP.Services
             }
         }
 
+        // A primeira requisição HTTPS pra um host novo (DNS + handshake TLS
+        // do zero) pode levar mais tempo que uma reaproveitando conexão já
+        // aberta — reportado pelo rod: a primeira verificação às vezes
+        // falhava e só funcionava no segundo toque. Em vez de deixar o
+        // usuário ter que tentar de novo na mão, tenta uma segunda vez
+        // sozinho antes de desistir.
         public static async Task<UpdateCheckResult> CheckAsync()
         {
-            string body = await Client.GetStringAsync(new Uri(VersionJsonUrl));
-            JsonObject json = JsonObject.Parse(body);
-            string latest = json.GetNamedString("version", string.Empty);
-            string current = CurrentVersion;
-
-            return new UpdateCheckResult
+            Exception lastError = null;
+            for (int attempt = 0; attempt < 2; attempt++)
             {
-                CurrentVersion = current,
-                LatestVersion = latest,
-                HasUpdate = !string.IsNullOrEmpty(latest) && CompareVersions(latest, current) > 0,
-            };
+                try
+                {
+                    string body = await Client.GetStringAsync(new Uri(VersionJsonUrl));
+                    JsonObject json = JsonObject.Parse(body);
+                    string latest = json.GetNamedString("version", string.Empty);
+                    string current = CurrentVersion;
+
+                    return new UpdateCheckResult
+                    {
+                        CurrentVersion = current,
+                        LatestVersion = latest,
+                        HasUpdate = !string.IsNullOrEmpty(latest) && CompareVersions(latest, current) > 0,
+                    };
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                    if (attempt == 0)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
+                }
+            }
+            throw lastError;
         }
 
         public static bool HasDownloadFolder()

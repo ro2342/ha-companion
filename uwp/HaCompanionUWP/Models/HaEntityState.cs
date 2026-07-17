@@ -117,9 +117,7 @@ namespace HaCompanionUWP.Models
                 {
                     case "light":
                     case "switch":
-                        return BrightnessPercent.HasValue
-                            ? $"Brilho {BrightnessPercent.Value}% · toque para alternar"
-                            : "Toque para ligar/desligar";
+                        return LightContextDetails();
                     case "fan":
                     case "humidifier":
                     case "input_boolean":
@@ -141,6 +139,35 @@ namespace HaCompanionUWP.Models
                             : "Sensor";
                 }
             }
+        }
+
+        // Menciona brilho e/ou capacidade de cor (RGB, temperatura de cor)
+        // na linha de contexto — sem isso, uma lâmpada RGB ficava
+        // indistinguível de um interruptor comum, ambos só "toque para
+        // ligar/desligar". Só troca cor de verdade via app oficial/HA, não
+        // dá pra ajustar aqui ainda — a menção já ajuda a saber "essa eu
+        // posso trocar de cor no app de verdade", ver ha-companion-w10m.md.
+        private string LightContextDetails()
+        {
+            string details = null;
+            if (BrightnessPercent.HasValue)
+            {
+                details = $"Brilho {BrightnessPercent.Value}%";
+            }
+            if (Domain == "light" && SupportsColor())
+            {
+                details = details == null ? "Cor ajustável" : details + " · Cor ajustável";
+            }
+            return details == null ? "Toque para ligar/desligar" : details + " · toque para alternar";
+        }
+
+        private bool SupportsColor()
+        {
+            return Attributes != null &&
+                (Attributes.ContainsKey("rgb_color") ||
+                 Attributes.ContainsKey("hs_color") ||
+                 Attributes.ContainsKey("color_temp") ||
+                 Attributes.ContainsKey("color_temp_kelvin"));
         }
 
         private string MediaPlayerDisplay()

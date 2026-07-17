@@ -41,9 +41,58 @@
             </Button>
         </DataTemplate>
 
+        <!-- Linha compacta dentro de um grupo (ver DashboardTile.ForGroup):
+             nome à esquerda, valor à direita, sem a linha de contexto (pra
+             caber várias numa lista só) — usado tanto no grupo com quanto
+             sem legenda. -->
+        <DataTemplate x:Key="GroupRowTemplate">
+            <Button Tag="{Binding EntityId}"
+                    Click="EntityCard_Click"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding FriendlyName}"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding DisplayValue}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Opacity="0.7"
+                               Margin="12,0,0,0"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <DataTemplate x:Key="GroupTemplate">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <ItemsControl ItemsSource="{Binding GroupEntities}" ItemTemplate="{StaticResource GroupRowTemplate}" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="GroupWithTitleTemplate">
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock Text="{Binding GroupTitle}" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,0,0,8" />
+                    <ItemsControl ItemsSource="{Binding GroupEntities}" ItemTemplate="{StaticResource GroupRowTemplate}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
         <services:DashboardTileTemplateSelector x:Key="TileSelector"
                                                  HeadingTemplate="{StaticResource HeadingTemplate}"
-                                                 EntityTemplate="{StaticResource EntityTemplate}" />
+                                                 EntityTemplate="{StaticResource EntityTemplate}"
+                                                 GroupTemplate="{StaticResource GroupTemplate}"
+                                                 GroupWithTitleTemplate="{StaticResource GroupWithTitleTemplate}" />
     </Page.Resources>
 
     <Grid>

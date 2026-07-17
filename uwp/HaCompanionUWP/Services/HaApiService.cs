@@ -23,7 +23,12 @@ namespace HaCompanionUWP.Services
     // Long-Lived Access Token guardado no CredentialStore.
     public static class HaApiService
     {
-        private static readonly HttpClient Client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+        // 15s, não 8s: a primeira conexão HTTPS/HTTP pra um host (DNS +
+        // handshake) pode ser bem mais lenta que as próximas, que
+        // reaproveitam a conexão já aberta — mesmo ajuste feito no
+        // UpdateCheckService depois de um "preciso tocar duas vezes"
+        // relatado pelo rod.
+        private static readonly HttpClient Client = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
         public static async Task<List<HaEntityState>> GetStatesAsync()
         {

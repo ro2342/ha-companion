@@ -103,22 +103,62 @@ namespace HaCompanionUWP.Services
                 return;
             }
 
-            // Contêineres de layout — achata recursivamente. "grid" aqui é
-            // o card de layout (dentro de uma view masonry), diferente do
-            // "grid" que aparece como tipo de SEÇÃO em view type "sections"
-            // (já tratado em Flatten antes de chegar aqui) — os dois só
-            // têm um array "cards" por dentro, mesmo tratamento serve.
-            if (type == "vertical-stack" || type == "horizontal-stack" || type == "grid")
+            // Contêineres de layout ("grid" aqui é o card de layout dentro
+            // de uma view masonry, diferente do "grid" que aparece como
+            // tipo de SEÇÃO em view type "sections", já tratado em Flatten
+            // antes de chegar aqui) e "entities" — em vez de espalhar cada
+            // entidade lá dentro num card cheio separado (perdendo a
+            // relação entre elas, ex.: o vacuum e os botões de escolher
+            // cômodo que estavam juntos, ou o status da impressora e os
+            // níveis de tinta), agrupa tudo num só DashboardTile.ForGroup,
+            // com o primeiro heading/title encontrado como legenda.
+            if (type == "vertical-stack" || type == "horizontal-stack" || type == "grid" || type == "entities")
             {
-                AppendCards(GetArray(card, "cards"), statesByEntityId, tiles);
+                var collected = new List<HaEntityState>();
+                string groupTitle = null;
+                CollectGroup(card, statesByEntityId, collected, ref groupTitle);
+
+                if (collected.Count > 1)
+                {
+                    tiles.Add(DashboardTile.ForGroup(groupTitle, collected));
+                }
+                else if (collected.Count == 1)
+                {
+                    tiles.Add(DashboardTile.ForEntity(collected[0]));
+                }
                 return;
             }
 
-            // "entities": lista de entidades, cada uma como string direta
-            // ("light.sala") ou objeto ({entity: ..., name: ...}).
-            if (type == "entities")
+            // Qualquer outro card com campo "entity" direto — cobre tile,
+            // light, humidifier, sensor, entity, todo-list nativos, e todo
+            // custom:mushroom-*/hue-like-light-card/mushroom-vacuum-card,
+            // que sempre declaram "entity:". Sem esse campo (ou "none"),
+            // não tem como saber o que o card controla — ignora.
+            string cardEntityId = GetString(card, "entity", string.Empty);
+            string cardName = GetString(card, "name", string.Empty);
+            AddResolvedEntity(cardEntityId, cardName, statesByEntityId, collectedInto: null, tiles: tiles);
+        }
+
+        // Resolve um único card (não-container) pra dentro de um grupo em
+        // construção — heading/title do PRIMEIRO card com essa informação
+        // vira a legenda do grupo inteiro; "vertical-stack"/"grid" aninhado
+        // dentro de outro é achatado pro MESMO grupo (ex.: o grid de botões
+        // de cômodo dentro do vertical-stack do vacuum).
+        private static void CollectGroup(JsonObject container, IReadOnlyDictionary<string, HaEntityState> statesByEntityId, List<HaEntityState> collected, ref string groupTitle)
+        {
+            string containerType = GetString(container, "type", string.Empty);
+
+            if (containerType == "entities")
             {
-                foreach (IJsonValue itemValue in GetArray(card, "entities"))
+                if (groupTitle == null)
+                {
+                    string title = GetString(container, "title", string.Empty);
+                    if (!string.IsNullOrEmpty(title))
+                    {
+                        groupTitle = title;
+                    }
+                }
+                foreach (IJsonValue itemValue in GetArray(container, "entities"))
                 {
                     string entityId = null;
                     string customName = null;
@@ -135,22 +175,50 @@ namespace HaCompanionUWP.Services
                             customName = GetString(itemObject, "name", string.Empty);
                         }
                     }
-                    AddEntityTile(entityId, customName, statesByEntityId, tiles);
+                    AddResolvedEntity(entityId, customName, statesByEntityId, collected, tiles: null);
                 }
                 return;
             }
 
-            // Qualquer outro card com campo "entity" direto — cobre tile,
-            // light, humidifier, sensor, entity, todo-list nativos, e todo
-            // custom:mushroom-*/hue-like-light-card/mushroom-vacuum-card,
-            // que sempre declaram "entity:". Sem esse campo (ou "none"),
-            // não tem como saber o que o card controla — ignora.
-            string cardEntityId = GetString(card, "entity", string.Empty);
-            string cardName = GetString(card, "name", string.Empty);
-            AddEntityTile(cardEntityId, cardName, statesByEntityId, tiles);
+            foreach (IJsonValue cardValue in GetArray(container, "cards"))
+            {
+                JsonObject card = AsObjectOrNull(cardValue);
+                if (card == null)
+                {
+                    continue;
+                }
+                string type = GetString(card, "type", string.Empty);
+
+                if (type == "heading")
+                {
+                    if (groupTitle == null)
+                    {
+                        string headingText = GetString(card, "heading", string.Empty);
+                        if (!string.IsNullOrEmpty(headingText))
+                        {
+                            groupTitle = headingText;
+                        }
+                    }
+                    continue;
+                }
+
+                if (type == "vertical-stack" || type == "horizontal-stack" || type == "grid" || type == "entities")
+                {
+                    CollectGroup(card, statesByEntityId, collected, ref groupTitle);
+                    continue;
+                }
+
+                string cardEntityId = GetString(card, "entity", string.Empty);
+                string cardName = GetString(card, "name", string.Empty);
+                AddResolvedEntity(cardEntityId, cardName, statesByEntityId, collected, tiles: null);
+            }
         }
 
-        private static void AddEntityTile(string entityId, string customName, IReadOnlyDictionary<string, HaEntityState> statesByEntityId, List<DashboardTile> tiles)
+        // Ponto único de resolução entity_id -> HaEntityState (aplicando o
+        // nome customizado do card, se houver) — usado tanto pra um tile
+        // solto (tiles != null) quanto pra dentro de um grupo em formação
+        // (collectedInto != null).
+        private static void AddResolvedEntity(string entityId, string customName, IReadOnlyDictionary<string, HaEntityState> statesByEntityId, List<HaEntityState> collectedInto, List<DashboardTile> tiles)
         {
             if (string.IsNullOrEmpty(entityId) || entityId == "none")
             {
@@ -168,7 +236,14 @@ namespace HaCompanionUWP.Services
                 entity = entity.WithDisplayName(customName);
             }
 
-            tiles.Add(DashboardTile.ForEntity(entity));
+            if (collectedInto != null)
+            {
+                collectedInto.Add(entity);
+            }
+            else
+            {
+                tiles.Add(DashboardTile.ForEntity(entity));
+            }
         }
 
         // Só usa o defaultValue quando a chave existe mas NÃO é string —
