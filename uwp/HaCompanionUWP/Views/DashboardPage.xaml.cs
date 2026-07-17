@@ -66,6 +66,16 @@ namespace HaCompanionUWP.Views
                 ErrorText.Text = ex.Message;
                 ErrorCard.Visibility = Visibility.Visible;
             }
+            catch (Exception ex)
+            {
+                // Rede de segurança: dashboards de terceiros têm esquema
+                // livre (cards HACS variados) — se ainda assim sobrar
+                // algum jeito de um card estourar uma exceção crua, isso
+                // aparece aqui como mensagem amigável em vez de derrubar o
+                // app inteiro pro diálogo genérico de erro não tratado.
+                ErrorText.Text = "Não deu pra carregar o dashboard: " + ex.Message;
+                ErrorCard.Visibility = Visibility.Visible;
+            }
             finally
             {
                 LoadingRing.IsActive = false;

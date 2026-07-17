@@ -74,6 +74,10 @@ namespace HaCompanionUWP.Views
             {
                 StatusText.Text = ex.Message;
             }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Não deu pra carregar os dashboards: " + ex.Message;
+            }
             finally
             {
                 LoadDashboardsButton.IsEnabled = true;

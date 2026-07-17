@@ -12,6 +12,17 @@ namespace HaCompanionUWP.Services
     // jeito nativo de sempre, por domínio. Cards sem entity utilizável
     // (ex.: custom:firemote-card sem entity real, custom:mushroom-template-card
     // que só tem texto de template) são ignorados silenciosamente.
+    //
+    // Tudo aqui lê JSON de configuração ESCRITA PELO USUÁRIO (cards de
+    // terceiros via HACS, com esquema livre) — diferente de HaEntityState,
+    // que lê a resposta de /api/states, controlada pelo próprio núcleo do
+    // HA. Por isso todo acesso a campo usa os helpers Get*/GetString/GetArray
+    // abaixo em vez de JsonObject.GetNamedString/GetNamedArray direto: esses
+    // métodos do WinRT só usam o defaultValue quando a CHAVE não existe —
+    // se a chave existir com um tipo diferente do esperado (ex.: um card
+    // customizado guardando um objeto onde a gente espera string), eles
+    // estouram "This is not a string value" em vez de cair no default,
+    // travando o app inteiro por causa de um card que nem é renderizado.
     public static class DashboardParser
     {
         // Só a primeira view nesta leva — é o caso real de uso do rod (uma
@@ -20,30 +31,35 @@ namespace HaCompanionUWP.Services
         {
             var tiles = new List<DashboardTile>();
 
-            JsonArray views = dashboardConfig.GetNamedArray("views", new JsonArray());
+            JsonArray views = GetArray(dashboardConfig, "views");
             if (views.Count == 0)
             {
                 return tiles;
             }
 
-            JsonObject firstView = views[0].GetObject();
-            string viewType = firstView.GetNamedString("type", "masonry");
+            JsonObject firstView = AsObjectOrNull(views[0]);
+            if (firstView == null)
+            {
+                return tiles;
+            }
+
+            string viewType = GetString(firstView, "type", "masonry");
 
             if (viewType == "sections")
             {
-                foreach (IJsonValue sectionValue in firstView.GetNamedArray("sections", new JsonArray()))
+                foreach (IJsonValue sectionValue in GetArray(firstView, "sections"))
                 {
-                    if (sectionValue.ValueType != JsonValueType.Object)
+                    JsonObject section = AsObjectOrNull(sectionValue);
+                    if (section == null)
                     {
                         continue;
                     }
-                    JsonObject section = sectionValue.GetObject();
-                    AppendCards(section.GetNamedArray("cards", new JsonArray()), statesByEntityId, tiles);
+                    AppendCards(GetArray(section, "cards"), statesByEntityId, tiles);
                 }
             }
             else
             {
-                AppendCards(firstView.GetNamedArray("cards", new JsonArray()), statesByEntityId, tiles);
+                AppendCards(GetArray(firstView, "cards"), statesByEntityId, tiles);
             }
 
             return tiles;
@@ -51,38 +67,35 @@ namespace HaCompanionUWP.Services
 
         public static string GetFirstViewTitle(JsonObject dashboardConfig)
         {
-            JsonArray views = dashboardConfig.GetNamedArray("views", new JsonArray());
+            JsonArray views = GetArray(dashboardConfig, "views");
             if (views.Count == 0)
             {
-                return null;
+                return string.Empty;
             }
-            // GetNamedString não aceita null como defaultValue — é um
-            // parâmetro HSTRING (WinRT), que não representa null; passar
-            // null aqui estourava ArgumentNullException/Null_HString em
-            // tempo de execução (só aparece com .NET Native/Release, não
-            // dá pra pegar sem testar no aparelho de verdade).
-            return views[0].GetObject().GetNamedString("title", string.Empty);
+            JsonObject firstView = AsObjectOrNull(views[0]);
+            return firstView == null ? string.Empty : GetString(firstView, "title", string.Empty);
         }
 
         private static void AppendCards(JsonArray cards, IReadOnlyDictionary<string, HaEntityState> statesByEntityId, List<DashboardTile> tiles)
         {
             foreach (IJsonValue cardValue in cards)
             {
-                if (cardValue.ValueType != JsonValueType.Object)
+                JsonObject card = AsObjectOrNull(cardValue);
+                if (card == null)
                 {
                     continue;
                 }
-                AppendCard(cardValue.GetObject(), statesByEntityId, tiles);
+                AppendCard(card, statesByEntityId, tiles);
             }
         }
 
         private static void AppendCard(JsonObject card, IReadOnlyDictionary<string, HaEntityState> statesByEntityId, List<DashboardTile> tiles)
         {
-            string type = card.GetNamedString("type", string.Empty);
+            string type = GetString(card, "type", string.Empty);
 
             if (type == "heading")
             {
-                string headingText = card.GetNamedString("heading", string.Empty);
+                string headingText = GetString(card, "heading", string.Empty);
                 if (!string.IsNullOrEmpty(headingText))
                 {
                     tiles.Add(DashboardTile.ForHeading(headingText));
@@ -97,7 +110,7 @@ namespace HaCompanionUWP.Services
             // têm um array "cards" por dentro, mesmo tratamento serve.
             if (type == "vertical-stack" || type == "horizontal-stack" || type == "grid")
             {
-                AppendCards(card.GetNamedArray("cards", new JsonArray()), statesByEntityId, tiles);
+                AppendCards(GetArray(card, "cards"), statesByEntityId, tiles);
                 return;
             }
 
@@ -105,7 +118,7 @@ namespace HaCompanionUWP.Services
             // ("light.sala") ou objeto ({entity: ..., name: ...}).
             if (type == "entities")
             {
-                foreach (IJsonValue itemValue in card.GetNamedArray("entities", new JsonArray()))
+                foreach (IJsonValue itemValue in GetArray(card, "entities"))
                 {
                     string entityId = null;
                     string customName = null;
@@ -113,11 +126,14 @@ namespace HaCompanionUWP.Services
                     {
                         entityId = itemValue.GetString();
                     }
-                    else if (itemValue.ValueType == JsonValueType.Object)
+                    else
                     {
-                        JsonObject itemObject = itemValue.GetObject();
-                        entityId = itemObject.GetNamedString("entity", string.Empty);
-                        customName = itemObject.GetNamedString("name", string.Empty);
+                        JsonObject itemObject = AsObjectOrNull(itemValue);
+                        if (itemObject != null)
+                        {
+                            entityId = GetString(itemObject, "entity", string.Empty);
+                            customName = GetString(itemObject, "name", string.Empty);
+                        }
                     }
                     AddEntityTile(entityId, customName, statesByEntityId, tiles);
                 }
@@ -129,8 +145,8 @@ namespace HaCompanionUWP.Services
             // custom:mushroom-*/hue-like-light-card/mushroom-vacuum-card,
             // que sempre declaram "entity:". Sem esse campo (ou "none"),
             // não tem como saber o que o card controla — ignora.
-            string cardEntityId = card.GetNamedString("entity", string.Empty);
-            string cardName = card.GetNamedString("name", string.Empty);
+            string cardEntityId = GetString(card, "entity", string.Empty);
+            string cardName = GetString(card, "name", string.Empty);
             AddEntityTile(cardEntityId, cardName, statesByEntityId, tiles);
         }
 
@@ -153,6 +169,37 @@ namespace HaCompanionUWP.Services
             }
 
             tiles.Add(DashboardTile.ForEntity(entity));
+        }
+
+        // Só usa o defaultValue quando a chave existe mas NÃO é string —
+        // diferente de JsonObject.GetNamedString, que só cobre o caso de
+        // chave ausente e estoura em qualquer outro tipo (ver comentário no
+        // topo do arquivo).
+        private static string GetString(JsonObject obj, string key, string defaultValue)
+        {
+            IJsonValue value;
+            if (obj == null || !obj.TryGetValue(key, out value) || value.ValueType != JsonValueType.String)
+            {
+                return defaultValue;
+            }
+            return value.GetString();
+        }
+
+        // Mesma ideia pra array: devolve vazio em vez de estourar se a
+        // chave existir com outro tipo.
+        private static JsonArray GetArray(JsonObject obj, string key)
+        {
+            IJsonValue value;
+            if (obj == null || !obj.TryGetValue(key, out value) || value.ValueType != JsonValueType.Array)
+            {
+                return new JsonArray();
+            }
+            return value.GetArray();
+        }
+
+        private static JsonObject AsObjectOrNull(IJsonValue value)
+        {
+            return value != null && value.ValueType == JsonValueType.Object ? value.GetObject() : null;
         }
     }
 }
