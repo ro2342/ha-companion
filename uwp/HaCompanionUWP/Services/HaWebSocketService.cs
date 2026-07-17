@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HaCompanionUWP.Models;
 using Windows.Data.Json;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
@@ -17,12 +18,12 @@ namespace HaCompanionUWP.Services
     }
 
     // Cliente fino do WebSocket do Home Assistant (/api/websocket) — só
-    // pra buscar config de dashboard (lovelace/config) e itens de todo,
-    // recursos que não existem em REST simples (ver ha-companion-w10m.md:
-    // o resto do app inteiro continua em HaApiService, puro REST). Conexão
-    // nova por chamada (conecta, autentica, manda UM comando, fecha) —
-    // sem estado de longa duração nem reconexão nesta leva, suficiente pra
-    // um app de "olha e age" que não fica aberto o tempo todo.
+    // pra buscar config/lista de dashboard e itens de todo, recursos que
+    // não existem em REST simples (ver ha-companion-w10m.md: o resto do
+    // app inteiro continua em HaApiService, puro REST). Conexão nova por
+    // chamada (conecta, autentica, manda UM comando, fecha) — sem estado de
+    // longa duração nem reconexão nesta leva, suficiente pra um app de
+    // "olha e age" que não fica aberto o tempo todo.
     public static class HaWebSocketService
     {
         public static async Task<JsonObject> GetDashboardConfigAsync(string urlPath)
@@ -35,7 +36,42 @@ namespace HaCompanionUWP.Services
             {
                 command["url_path"] = JsonValue.CreateStringValue(urlPath);
             }
-            return await RunCommandAsync(command);
+            IJsonValue result = await RunCommandAsync(command);
+            return result.GetObject();
+        }
+
+        // Lista os dashboards cadastrados na conta (mesmo dado que
+        // aparece na barra lateral do HA) — usado pro ComboBox de Ajustes
+        // em vez do usuário ter que descobrir/digitar o url_path na mão.
+        public static async Task<List<DashboardInfo>> GetDashboardsAsync()
+        {
+            var command = new JsonObject
+            {
+                ["type"] = JsonValue.CreateStringValue("lovelace/dashboards/list"),
+            };
+            IJsonValue result = await RunCommandAsync(command);
+
+            var dashboards = new List<DashboardInfo>
+            {
+                new DashboardInfo { Title = "Overview (padrão)", UrlPath = string.Empty },
+            };
+
+            foreach (IJsonValue itemValue in result.GetArray())
+            {
+                if (itemValue.ValueType != JsonValueType.Object)
+                {
+                    continue;
+                }
+                JsonObject item = itemValue.GetObject();
+                string urlPath = item.GetNamedString("url_path", string.Empty);
+                string title = item.GetNamedString("title", urlPath);
+                if (!string.IsNullOrEmpty(urlPath))
+                {
+                    dashboards.Add(new DashboardInfo { Title = title, UrlPath = urlPath });
+                }
+            }
+
+            return dashboards;
         }
 
         public static async Task<JsonArray> GetTodoItemsAsync(string entityId)
@@ -45,8 +81,8 @@ namespace HaCompanionUWP.Services
                 ["type"] = JsonValue.CreateStringValue("todo/item/list"),
                 ["entity_id"] = JsonValue.CreateStringValue(entityId),
             };
-            JsonObject result = await RunCommandAsync(command);
-            return result.GetNamedArray("items", new JsonArray());
+            IJsonValue result = await RunCommandAsync(command);
+            return result.GetObject().GetNamedArray("items", new JsonArray());
         }
 
         public static async Task MarkTodoItemAsync(string entityId, string itemId, bool completed)
@@ -61,7 +97,11 @@ namespace HaCompanionUWP.Services
             await RunCommandAsync(command);
         }
 
-        private static async Task<JsonObject> RunCommandAsync(JsonObject command)
+        // Devolve o "result" cru (IJsonValue) — alguns comandos respondem
+        // com objeto (lovelace/config), outros com array na raiz
+        // (lovelace/dashboards/list); cada chamador converte pro tipo
+        // certo, em vez do método genérico assumir só um dos dois.
+        private static async Task<IJsonValue> RunCommandAsync(JsonObject command)
         {
             string baseUrl = CredentialStore.GetBaseUrl();
             string token = CredentialStore.GetToken();
@@ -74,7 +114,7 @@ namespace HaCompanionUWP.Services
             var socket = new MessageWebSocket();
             socket.Control.MessageType = SocketMessageType.Utf8;
 
-            var pending = new Dictionary<int, TaskCompletionSource<JsonObject>>();
+            var pending = new Dictionary<int, TaskCompletionSource<IJsonValue>>();
             var authTcs = new TaskCompletionSource<bool>();
             DataWriter writer = null;
 
@@ -105,14 +145,14 @@ namespace HaCompanionUWP.Services
                 else if (type == "result")
                 {
                     int id = (int)json.GetNamedNumber("id", 0);
-                    TaskCompletionSource<JsonObject> tcs;
+                    TaskCompletionSource<IJsonValue> tcs;
                     if (pending.TryGetValue(id, out tcs))
                     {
                         pending.Remove(id);
                         bool success = json.GetNamedBoolean("success", false);
                         if (success)
                         {
-                            tcs.TrySetResult(json.GetNamedObject("result", new JsonObject()));
+                            tcs.TrySetResult(json.GetNamedValue("result"));
                         }
                         else
                         {
@@ -126,7 +166,7 @@ namespace HaCompanionUWP.Services
             socket.Closed += (sender, args) =>
             {
                 authTcs.TrySetException(new HaWebSocketException("Conexão fechada antes de autenticar."));
-                foreach (TaskCompletionSource<JsonObject> tcs in pending.Values)
+                foreach (TaskCompletionSource<IJsonValue> tcs in pending.Values)
                 {
                     tcs.TrySetException(new HaWebSocketException("Conexão fechada antes de receber resposta."));
                 }
@@ -146,7 +186,7 @@ namespace HaCompanionUWP.Services
 
                 const int commandId = 1;
                 command["id"] = JsonValue.CreateNumberValue(commandId);
-                var resultTcs = new TaskCompletionSource<JsonObject>();
+                var resultTcs = new TaskCompletionSource<IJsonValue>();
                 pending[commandId] = resultTcs;
                 await SendAsync(writer, command);
 

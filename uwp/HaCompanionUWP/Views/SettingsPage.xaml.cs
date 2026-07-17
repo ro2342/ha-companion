@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using HaCompanionUWP.Models;
 using HaCompanionUWP.Services;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -14,6 +16,7 @@ namespace HaCompanionUWP.Views
     public sealed partial class SettingsPage : Page
     {
         private StorageFile _downloadedUpdateFile;
+        private string _savedDashboardUrlPath;
 
         public SettingsPage()
         {
@@ -28,7 +31,7 @@ namespace HaCompanionUWP.Views
             {
                 TokenBox.PlaceholderText = "Token salvo — deixe em branco para manter";
             }
-            DashboardUrlPathBox.Text = CredentialStore.GetDashboardUrlPath() ?? string.Empty;
+            _savedDashboardUrlPath = CredentialStore.GetDashboardUrlPath() ?? string.Empty;
             CurrentVersionText.Text = $"Versão instalada: {UpdateCheckService.CurrentVersion}";
         }
 
@@ -41,7 +44,40 @@ namespace HaCompanionUWP.Views
             {
                 CredentialStore.SaveToken(TokenBox.Password);
             }
-            CredentialStore.SaveDashboardUrlPath(DashboardUrlPathBox.Text);
+            // Só grava se o usuário chegou a carregar/escolher algo nesta
+            // visita à tela — sem isso, abrir Ajustes só pra trocar o
+            // token e apertar Salvar apagaria o dashboard já configurado.
+            var selected = DashboardPicker.SelectedValue as string;
+            if (selected != null)
+            {
+                CredentialStore.SaveDashboardUrlPath(selected);
+            }
+        }
+
+        private async void LoadDashboards_Click(object sender, RoutedEventArgs e)
+        {
+            LoadDashboardsButton.IsEnabled = false;
+            StatusText.Visibility = Visibility.Visible;
+            StatusText.Text = "Carregando dashboards...";
+
+            try
+            {
+                List<DashboardInfo> dashboards = await HaWebSocketService.GetDashboardsAsync();
+                DashboardPicker.ItemsSource = dashboards;
+
+                int savedIndex = dashboards.FindIndex(d => d.UrlPath == _savedDashboardUrlPath);
+                DashboardPicker.SelectedIndex = savedIndex >= 0 ? savedIndex : 0;
+
+                StatusText.Text = $"{dashboards.Count} dashboard(s) encontrado(s).";
+            }
+            catch (HaWebSocketException ex)
+            {
+                StatusText.Text = ex.Message;
+            }
+            finally
+            {
+                LoadDashboardsButton.IsEnabled = true;
+            }
         }
 
         private async void Test_Click(object sender, RoutedEventArgs e)
@@ -173,7 +209,8 @@ namespace HaCompanionUWP.Views
                 BaseUrlBox.Text = string.Empty;
                 TokenBox.Password = string.Empty;
                 TokenBox.PlaceholderText = "Gerado no seu perfil do Home Assistant";
-                DashboardUrlPathBox.Text = string.Empty;
+                DashboardPicker.ItemsSource = null;
+                _savedDashboardUrlPath = string.Empty;
                 StatusText.Visibility = Visibility.Collapsed;
             }
         }

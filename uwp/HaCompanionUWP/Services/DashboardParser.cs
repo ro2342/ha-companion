@@ -56,7 +56,12 @@ namespace HaCompanionUWP.Services
             {
                 return null;
             }
-            return views[0].GetObject().GetNamedString("title", null);
+            // GetNamedString não aceita null como defaultValue — é um
+            // parâmetro HSTRING (WinRT), que não representa null; passar
+            // null aqui estourava ArgumentNullException/Null_HString em
+            // tempo de execução (só aparece com .NET Native/Release, não
+            // dá pra pegar sem testar no aparelho de verdade).
+            return views[0].GetObject().GetNamedString("title", string.Empty);
         }
 
         private static void AppendCards(JsonArray cards, IReadOnlyDictionary<string, HaEntityState> statesByEntityId, List<DashboardTile> tiles)

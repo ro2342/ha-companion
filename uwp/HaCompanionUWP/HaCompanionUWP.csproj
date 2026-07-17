@@ -61,6 +61,7 @@
 
     <Compile Include="Models\HaEntityState.cs" />
     <Compile Include="Models\DashboardTile.cs" />
+    <Compile Include="Models\DashboardInfo.cs" />
 
     <Compile Include="Services\CredentialStore.cs" />
     <Compile Include="Services\HaApiService.cs" />
