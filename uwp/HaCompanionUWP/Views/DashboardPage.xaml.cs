@@ -96,6 +96,11 @@ namespace HaCompanionUWP.Views
                 switch (domain)
                 {
                     case "light":
+                        if (entity != null)
+                        {
+                            LightControlFlyout.Show(element, entity, LoadAsync, ShowError);
+                        }
+                        return;
                     case "switch":
                     case "fan":
                     case "humidifier":
@@ -136,6 +141,12 @@ namespace HaCompanionUWP.Views
                 ErrorText.Text = ex.Message;
                 ErrorCard.Visibility = Visibility.Visible;
             }
+        }
+
+        private void ShowError(string message)
+        {
+            ErrorText.Text = message;
+            ErrorCard.Visibility = Visibility.Visible;
         }
 
         private void ShowNumberFlyout(FrameworkElement anchor, string entityId, HaEntityState entity)

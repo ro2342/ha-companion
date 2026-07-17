@@ -10,8 +10,12 @@ namespace HaCompanionUWP.Views
 {
     // Todas as light.* e switch.* ao vivo — domínios que a doc trata do
     // mesmo jeito visualmente (card tocável; switch só não mostra brilho).
+    // Toque numa light abre o LightControlFlyout (ligar/desligar, brilho,
+    // cor); switch continua um toggle simples.
     public sealed partial class LightsPage : Page
     {
+        private Dictionary<string, HaEntityState> _statesByEntityId = new Dictionary<string, HaEntityState>();
+
         public LightsPage()
         {
             this.InitializeComponent();
@@ -32,6 +36,8 @@ namespace HaCompanionUWP.Views
             try
             {
                 List<HaEntityState> allStates = await HaApiService.GetStatesAsync();
+                _statesByEntityId = allStates.ToDictionary(entity => entity.EntityId, entity => entity);
+
                 List<HaEntityState> lights = allStates
                     .Where(entity => entity.Domain == "light" || entity.Domain == "switch")
                     .OrderBy(entity => entity.FriendlyName)
@@ -53,8 +59,19 @@ namespace HaCompanionUWP.Views
 
         private async void EntityCard_Click(object sender, RoutedEventArgs e)
         {
-            string entityId = (string)((FrameworkElement)sender).Tag;
+            var element = (FrameworkElement)sender;
+            string entityId = (string)element.Tag;
             string domain = entityId.Contains(".") ? entityId.Substring(0, entityId.IndexOf('.')) : string.Empty;
+
+            if (domain == "light")
+            {
+                HaEntityState entity;
+                if (_statesByEntityId.TryGetValue(entityId, out entity))
+                {
+                    LightControlFlyout.Show(element, entity, LoadAsync, ShowError);
+                }
+                return;
+            }
 
             try
             {
@@ -63,9 +80,14 @@ namespace HaCompanionUWP.Views
             }
             catch (HaApiException ex)
             {
-                ErrorText.Text = ex.Message;
-                ErrorCard.Visibility = Visibility.Visible;
+                ShowError(ex.Message);
             }
+        }
+
+        private void ShowError(string message)
+        {
+            ErrorText.Text = message;
+            ErrorCard.Visibility = Visibility.Visible;
         }
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)

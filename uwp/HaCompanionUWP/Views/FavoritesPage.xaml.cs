@@ -15,6 +15,8 @@ namespace HaCompanionUWP.Views
     // conta do HA realmente tem.
     public sealed partial class FavoritesPage : Page
     {
+        private Dictionary<string, HaEntityState> _statesByEntityId = new Dictionary<string, HaEntityState>();
+
         public FavoritesPage()
         {
             this.InitializeComponent();
@@ -43,13 +45,13 @@ namespace HaCompanionUWP.Views
                 }
 
                 List<HaEntityState> allStates = await HaApiService.GetStatesAsync();
-                Dictionary<string, HaEntityState> byId = allStates.ToDictionary(entity => entity.EntityId, entity => entity);
+                _statesByEntityId = allStates.ToDictionary(entity => entity.EntityId, entity => entity);
 
                 var favorites = new List<HaEntityState>();
                 foreach (string id in favoriteIds)
                 {
                     HaEntityState entity;
-                    if (byId.TryGetValue(id, out entity))
+                    if (_statesByEntityId.TryGetValue(id, out entity))
                     {
                         favorites.Add(entity);
                     }
@@ -70,14 +72,24 @@ namespace HaCompanionUWP.Views
 
         private async void EntityCard_Click(object sender, RoutedEventArgs e)
         {
-            string entityId = (string)((FrameworkElement)sender).Tag;
+            var element = (FrameworkElement)sender;
+            string entityId = (string)element.Tag;
             string domain = entityId.Contains(".") ? entityId.Substring(0, entityId.IndexOf('.')) : string.Empty;
+
+            if (domain == "light")
+            {
+                HaEntityState entity;
+                if (_statesByEntityId.TryGetValue(entityId, out entity))
+                {
+                    LightControlFlyout.Show(element, entity, LoadAsync, ShowError);
+                }
+                return;
+            }
 
             try
             {
                 switch (domain)
                 {
-                    case "light":
                     case "switch":
                         await HaApiService.CallServiceAsync(domain, "toggle", entityId);
                         break;
@@ -89,9 +101,14 @@ namespace HaCompanionUWP.Views
             }
             catch (HaApiException ex)
             {
-                ErrorText.Text = ex.Message;
-                ErrorCard.Visibility = Visibility.Visible;
+                ShowError(ex.Message);
             }
+        }
+
+        private void ShowError(string message)
+        {
+            ErrorText.Text = message;
+            ErrorCard.Visibility = Visibility.Visible;
         }
 
         private void ChooseFavorites_Click(object sender, RoutedEventArgs e)

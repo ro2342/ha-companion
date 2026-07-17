@@ -68,6 +68,7 @@
     <Compile Include="Services\HaWebSocketService.cs" />
     <Compile Include="Services\DashboardParser.cs" />
     <Compile Include="Services\EntityCardTemplateSelector.cs" />
+    <Compile Include="Services\LightControlFlyout.cs" />
     <Compile Include="Services\DashboardTileTemplateSelector.cs" />
     <Compile Include="Services\ThemeHelper.cs" />
     <Compile Include="Services\UpdateCheckService.cs" />
